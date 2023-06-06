@@ -1,40 +1,58 @@
 pipeline {
-
-    environment {
-        registry = "gabed23/flask_app"
-        registryCredentials = "docker"
-        cluster_name = "skillstorm"
+  agent {
+    node {
+      label 'docker'
     }
 
-    agent {
+  }
+  stages {
+    stage('Git') {
+      agent {
         node {
-            label 'docker'
+          label 'docker'
         }
+
+      }
+      steps {
+        git(url: 'https://github.com/GabeD23/flasking.git', branch: 'main')
+      }
     }
-    stages {
-        stage('Git') {
-            steps {
-                git(url: 'https://igthub.com/gabed23/flasking.git', branch: 'main')
-            }
+
+    stage('Docker Build') {
+      agent {
+        node {
+          label 'docker'
         }
 
-        stage('Build Stage') {
-            steps {
-                script {
-                    dockerImage = docker.build(registry)
-                }
-            }
+      }
+      steps {
+        sh 'docker build -t gabed23/flask_app .'
+      }
+    }
+
+    stage('Docker Login') {
+      agent {
+        node {
+          label 'docker'
         }
 
-        stage('Deployment Stage') {
-            steps {
-                script {
-                    docker.withRegistry('', registryCredentials) {
-                        dockerImage.push()
-                    }
-                }
-            }
+      }
+      steps {
+        sh 'docker login -u gabed23 -p dckr_pat_JUzDkU4RQFBwFWxuD0CYHSNIwMc'
+      }
+    }
+
+    stage('Docker Push') {
+      agent {
+        node {
+          label 'docker'
         }
-    } 
+
+      }
+      steps {
+        sh 'docker push gabed23/flask_app'
+      }
+    }
+
+  }
 }
-
